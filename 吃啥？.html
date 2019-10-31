@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+    <link rel="stylesheet" href="../temp.css">
+    <style>
+        .single {
+            background: rgb(200,200,200);
+            width: 170px;
+            height: 200px;
+            line-height: 200px;
+            display: inline-block;
+            cursor: pointer;
+            border: solid 10px white;
+            text-align: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .active {
+            background: red;
+        }
+
+        .start, .stop {
+            width: 100%;
+            height: 80px;
+            line-height: 80px;
+            text-align: center;
+            color: white;
+            cursor: pointer;
+            margin-bottom: 10px;
+            font-size: 19px;
+        }
+
+        .start {
+            background: green;
+        }
+
+        .stop {
+            background:grey;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="outer">
+        <div @click="start" class="start">开始</div>
+        <div @click="stop" class="stop">停止</div>
+        <div @click="timing" class="stop">定时随机</div>
+        <div @click="add" class="stop">添加新食物</div>
+        <div v-for="(item, index) in items" :class="{ single: 1, active: index === current }" title="点击删除该食物" @click="deleteElement(index)">{{item}}</div>
+    </div>
+</body>
+<script type="text/javascript" src="https://unpkg.com/vue"></script>
+<script>
+
+    /*
+        改进：
+            1、封装个弹出框组件，替换掉 alert、prompt
+    */
+
+    const vm = new Vue({
+        el: `.outer`,
+        data: {
+
+            // 食物列表
+            items: [
+                "牛肉汤、葱花饼",
+                "米饭（素）",
+                "米饭（肉）",
+                "牛肉拉面",
+                "鸡蛋拉面",
+                "盖浇面",
+                "饺子",
+                "凉皮、肉夹馍"
+            ],
+
+            // 当前项
+            current: 0,
+
+            // 间歇调用、超时调用代号
+            IntervalNum: [],
+            timeOutNum: [],
+
+            // start 间歇调用时间间隔
+            Interval: 100,
+
+            // timeout 超时调用时间间隔
+            timeOut: 3000
+        },
+
+        methods: {
+
+            // 清除所有超时调用、间歇调用
+            clear(low, high, don = 0) {
+                this.IntervalNum.forEach(v => clearTimeout(v));
+                this.timeOutNum.forEach(v => clearInterval(v));
+                this.IntervalNum = [];
+                this.timeOutNum = [];
+            },
+
+            // 生成随机数
+            rand(low, high, don = 0) {
+                let num;
+                for (num = 1; don; num *= 10, don--);
+                return num > 1 ? parseInt((low + Math.random() * (high - low)) * num) / num : parseInt(low + Math.random() * (high - low));
+            },
+
+            // 开始随机
+            start() {
+                this.clear();                                                                   // 清除所有超时调用、间歇调用
+                this.IntervalNum.push(setInterval(() => {                                       // 开启间歇调用并保存其代号
+                    this.current = this.rand(0, this.items.length - 0.1)                        // 生成随机下标
+                } , this.Interval));
+            },
+
+            // 结束随机
+            stop() {
+                this.clear();
+                alert(`这次吃 ${this.items[this.current]} ！`);
+            },
+
+            // 定时随机
+            timing() {
+                this.clear();
+                this.timeOut = parseInt(prompt('请输入随机时间，以 ms 为单位，默认 3000', ''));    // 获取超时调用时间
+                this.start();                                                                   // 开始随机
+                this.timeOutNum.push(setTimeout(() =>{                                          // 开启超时调用并保存其代号
+                    this.stop();                                                                // 随机结束
+                }, this.timeOut));
+            },
+
+            // 添加食物
+            add() {
+                this.clear();
+                this.items.push(prompt('请输入要添加的食物名称', '你想加啥？'))                   // 此处利用的是 bom 提供的询问框，后期可单独写个弹出框组件，上面的 alert() 也是
+            },
+
+            // 删除食物
+            deleteElement(index) {
+                this.clear();
+                this.items.splice(index, 1);                                                    // 移除对应下标的元素
+            }
+        },
+    });
+</script>
+</html>
